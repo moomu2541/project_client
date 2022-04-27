@@ -1,4 +1,3 @@
-
 const LOCAL_URL = 'http://localhost/api';
 const PROD_URL = 'https://production.werapun.com/api';
 

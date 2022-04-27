@@ -2,37 +2,45 @@ import Head from 'next/head'
 import Layout from '../components/layout'
 import { useState } from 'react'
 import Navbar from '../components/navbar'
-import styles from '../styles/Home.module.css'
 import axios from 'axios'
 import config from '../config/config'
+import { useRouter } from "next/router";
+import Swal from 'sweetalert2'
 
 export default function Login({ token }) {
 
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [status, setStatus] = useState('')
-    const [ischeck, setIscheck] = useState('')
+    const router = useRouter();
+
 
     const login = async (req, res) => {
         try {
             let result = await axios.post(`${config.URL}/login`,
                 { username, password },
                 { withCredentials: true })
-            console.log('result: ', result)
+            /*console.log('result: ', result)
             console.log('result.data:  ', result.data)
             console.log('token:  ', token)
-            setStatus(result.status + ': ' + result.data.user.username)
+            setStatus(result.status + ': ' + result.data.user.username)*/
+            Swal.fire(
+                'Logged-In!',
+                'Your are in Our website!',
+                'success'
+            )
         }
         catch (e) {
             console.log('error: ', JSON.stringify(e.response))
             setStatus(JSON.stringify(e.response).substring(0, 80) + "...")
         }
+        await router.push('/')
     }
 
     const loginForm = () => (
-        <div className={styles.gridContainer}>
+        <div>
             <div>
-                Username:
+                Username :
             </div>
             <div>
                 <input type="text"
@@ -42,7 +50,7 @@ export default function Login({ token }) {
                 />
             </div>
             <div>
-                Password:
+                Password :
             </div>
             <div>
                 <input type="password"
@@ -59,33 +67,29 @@ export default function Login({ token }) {
 
     return (
         <Layout>
-            <Head>
+            <Head >
                 <title>Login</title>
-            </Head>
-            <div className={styles.container}>
-                <Navbar />
-                <h1>Login</h1>
-                <div><b>Token:</b> {token.substring(0, 15)}...
-                <button onClick={copyText}> Copy token </button>
-                </div>
-                <br/>
-                <div>
-                    Status:  {status}
-                    check: {ischeck}
-                </div>
-                <br />
-                {loginForm()}
+                <meta charset="utf-8"></meta>
 
-                <div>
-                    <input type="checkbox"
-                        name="IsRememberMe"
-                        onChange={ (e) => setIscheck(e.target.value)}
-                    />Remember me!
-                    <br /><br />
-                </div>
-                
-                <div>
-                    <button onClick={login}>Login</button>
+                <link href="https://fonts.googleapis.com/css2?family=Mali:ital,wght@1,300&display=swap" rel="stylesheet"></link>
+            </Head>
+            <div class="bg-blue-200 sm:h-screen ">
+                <Navbar />
+                <div class="py-20">
+                    <div class="py-20">
+                        <div class="py-20">
+                            <div class="py-18">
+                                <div class=" justify-center bg-gradient-to-r from-blue-700 to-blue-300 p-9 grid grid-row-3 gap-3 pt-10 ">
+                                    <h1 class="pt-6 text-3xl text-black flex flex-col justify-around  items-center font-bold ">Login</h1>
+                                    {loginForm()}
+                                    <div class="flex justify-center">
+                                        <button onClick={login} class="shadow-md mr-4 bg-blue-400 p-2 rounded-lg hover:bg-green-400 hover:text-black font-bold">Login</button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </Layout>

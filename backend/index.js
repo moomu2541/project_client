@@ -1,4 +1,3 @@
-
 const express = require('express'),
     app = express(),
     passport = require('passport'),
@@ -7,16 +6,9 @@ const express = require('express'),
     cookie = require('cookie')
 
 const bcrypt = require('bcrypt')
-const { json } = require('express')
 
 const db = require('./database.js')
 let users = db.users
-
-let students = {
-    list: [
-        { id: 1, fname: "Purinut", surname: "Tanparmwong", major: "CoE", gpa: 2.5 }
-    ]
-}
 
 require('./passport.js')
 
@@ -28,6 +20,17 @@ router.use(cors({ origin: 'http://localhost:3000', credentials: true }))
 // router.use(cors())
 router.use(express.json())
 router.use(express.urlencoded({ extended: false }))
+
+let products = {
+    list: [
+        { id: 1, name: 'Sushi', number: 5, price: 5000, imageurl: 'https://i.pinimg.com/564x/9a/00/3b/9a003b86ee819b3c99fd0c27fa0a0ab9.jpg' },
+        { id: 2, name: 'Mumi', number: 4, price: 6500, imageurl: 'https://i.pinimg.com/564x/bd/9c/93/bd9c931ca152a2323a4293ff5ad9846b.jpg' },
+        { id: 3, name: 'Picky', number: 6, price: 8000, imageurl: 'https://i.pinimg.com/564x/26/c7/35/26c7355fe46f62d84579857c6f8c4ea5.jpg' },
+        { id: 4, name: 'Puifay', number: 5, price: 3000, imageurl: 'https://i.pinimg.com/564x/2b/9f/d9/2b9fd97e8850f72c6960e22c9de9408c.jpg' }
+        
+    ]
+}
+let income = 0
 
 router.post('/login', (req, res, next) => {
     passport.authenticate('local', { session: false }, (err, user, info) => {
@@ -77,94 +80,66 @@ router.get('/profile',
         res.send(req.user)
     });
 
-/* GET user foo. */
-router.get('/foo',
-    passport.authenticate('jwt', { session: false }),
-    (req, res, next) => {
-        return res.json({ message: 'foo' })
-    });
+;
 
-
-    router.route('/students')
-    .get((req, res) => res.json(students))
-
-
-router.post('/students',
-    // passport.authenticate('jwt', { session: false }),
-    (req, res) => {
-        try {
-
-            let newStudent = {}
-            newStudent.id = (students.list.length) ? students.list[students.list.length - 1].id + 1 : 1
-            newStudent.fname = req.body.fname;
-            newStudent.surname = req.body.surname;
-            newStudent.major = req.body.major;
-            newStudent.gpa = req.body.gpa;
-
-            students = { "list": [...students.list, newStudent] }
-            res.json(students)
-        }
-        catch
-        {
-            res.json({ status: "Add Fail" })
-        }
-
-
-
+router.route('/products')
+    .get((req, res) => res.json(products.list))
+    .post((req, res) => {
+        console.log(req.body)
+        let newproduct = {}
+        newproduct.id = (products.list.length) ? products.list[products.list.length - 1].id + 1 : 1
+        newproduct.name = req.body.name
+        newproduct.number = req.body.number
+        newproduct.price = req.body.price
+        newproduct.imageurl = req.body.imageurl
+        products = { "list": [...products.list, newproduct] }
+        res.json(products.list)
     })
-    router.route('/students/:std_id')
+
+router.route('/products/:product_id')
     .get((req, res) => {
-
-        let ID = students.list.findIndex( item => (item.id === +req.params.std_id))
-        if(ID >= 0)
-        {
-            res.json(students.list[ID])
-        }
-        else
-        {
-            res.json({status: "Student Error can't find!"})
-        }
-
+        const product_id = req.params.product_id
+        const id = products.list.findIndex(item => +item.id === +product_id)
+        res.json(products.list[id])
     })
-
-    .put( (req,res) => { 
-
-        let ID = students.list.findIndex( item => ( item.id === +req.params.std_id))
-        
-        if( ID >= 0)
-        {
-            students.list[ID].fname = req.body.fname
-            students.list[ID].surname = req.body.surname
-            students.list[ID].major = req.body.major
-            students.list[ID].gpa = req.body.gpa
-            
-            res.json(students)
-
-
-        }
-        else
-        {
-            res.json({status: "Student Error can't find!"})
-        }
-            
+    .put((req, res) => {
+        const product_id = req.params.product_id
+        const id = products.list.findIndex(item => +item.id === +product_id)
+        products.list[id].id = req.body.id
+        products.list[id].name = req.body.name
+        products.list[id].number = req.body.number
+        products.list[id].price = req.body.price
+        products.list[id].imageurl = req.body.imageurl
+        res.json(products.list)
     })
-
     .delete((req, res) => {
-
-        let ID = students.list.findIndex( item => ( item.id === +req.params.std_id))
-
-        if(ID>=0)
-        {
-            students.list = students.list.filter( item => item.id !== +req.params.std_id)
-            res.json(students)
-        }
-        else
-        {
-            res.json({status: "Student Error can't find!"})
-        }
-
+        const product_id = req.params.product_id
+        products.list = products.list.filter(item => +item.id !== +product_id)
+        res.json(products.list)
     })
 
+
+
+router.route('/income')
+    .get((req, res) => res.json(income))
+
+
+
+router.route('/purchase/:product_id')
+    .delete((req, res) => {
+        const product_id = req.params.product_id
+        const id = products.list.findIndex(item => +item.id === +product_id)
+        console.log('productID: ', product_id, 'ID: ', id)
+        if (id !== -1) {
+            income += products.list[id].price
+            products.list = products.list.filter(item => +item.id !== +product_id)
+            res.json(products.list)
+        }
+        else {
+            res.send('Not found')
+
+        }
+    })
 
 router.post('/register',
     async (req, res) => {
@@ -184,6 +159,25 @@ router.post('/register',
             res.status(422).json({ message: "Cannot register" })
         }
     })
+
+router.put('/reproducts/:product_id',
+    async (req, res) => {
+        const product_id = req.params.product_id
+        const id = products.list.findIndex(item => +item.id === +product_id)
+        if (products.list[id].number > 0)
+            products.list[id].number--
+        res.json(req.products)
+
+    })
+
+router.put('/addproduct/:product_id',
+    async (req, res) => {
+        const product_id = req.params.product_id
+        const id = products.list.findIndex(item => +item.id === +product_id)
+        products.list[id].number++
+        res.json(req.products)
+    })
+
 
 router.get('/alluser', (req, res) => res.json(db.users.users))
 
@@ -205,4 +199,3 @@ app.use((err, req, res, next) => {
 
 // Start Server
 app.listen(port, () => console.log(`Server is running on port ${port}`))
-
